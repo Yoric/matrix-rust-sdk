@@ -25,8 +25,8 @@ use ruma::{
     },
     assign,
     events::{dummy::ToDeviceDummyEventContent, AnyToDeviceEventContent},
-    DeviceId, DeviceKeyAlgorithm, EventEncryptionAlgorithm, OwnedDeviceId, OwnedTransactionId,
-    OwnedUserId, SecondsSinceUnixEpoch, TransactionId, UserId,
+    DeviceId, DeviceKeyAlgorithm, OwnedDeviceId, OwnedTransactionId, OwnedUserId,
+    SecondsSinceUnixEpoch, TransactionId, UserId,
 };
 use tracing::{debug, error, info, warn};
 
@@ -37,6 +37,7 @@ use crate::{
     olm::Account,
     requests::{OutgoingRequest, ToDeviceRequest},
     store::{Changes, Result as StoreResult, Store},
+    types::events::EventEncryptionAlgorithm,
     ReadOnlyDevice,
 };
 

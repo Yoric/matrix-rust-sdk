@@ -319,6 +319,7 @@ mod tests {
         identities::device::testing::get_device,
         olm::{tests::get_account_and_session, InboundGroupSession, OlmMessageHash},
         store::{memorystore::MemoryStore, Changes, CryptoStore},
+        types::events::EventEncryptionAlgorithm,
     };
 
     #[async_test]
@@ -350,6 +351,7 @@ mod tests {
             "test_key",
             room_id,
             &outbound.session_key().await,
+            EventEncryptionAlgorithm::MegolmV1AesSha2,
             None,
         );
 

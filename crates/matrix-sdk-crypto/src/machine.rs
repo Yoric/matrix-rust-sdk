@@ -556,12 +556,13 @@ impl OlmMachine {
         event: &RoomKeyEvent,
     ) -> OlmResult<Option<InboundGroupSession>> {
         match &event.content {
-            RoomKeyContent::MegolmV1AesSha2(content) => {
+            RoomKeyContent::MegolmV1AesSha2(content) | RoomKeyContent::MegolmV2AesSha2(content) => {
                 let session = InboundGroupSession::new(
                     sender_key,
                     signing_key,
                     &content.room_id,
                     &content.session_key,
+                    event.algorithm(),
                     None,
                 );
 
@@ -570,7 +571,8 @@ impl OlmMachine {
                     sender_key = sender_key,
                     room_id = %content.room_id,
                     session_id = session.session_id(),
-                    "Received a new room key",
+                    algorithm = %event.algorithm(),
+                    "Received a new megolm room key",
                 );
 
                 Ok(Some(session))

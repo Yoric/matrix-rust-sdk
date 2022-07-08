@@ -37,8 +37,8 @@ use ruma::{
         room_key::ToDeviceRoomKeyEventContent,
         AnyToDeviceEventContent,
     },
-    DeviceId, EventEncryptionAlgorithm, OwnedDeviceId, OwnedTransactionId, OwnedUserId, RoomId,
-    SecondsSinceUnixEpoch, TransactionId, UserId,
+    DeviceId, OwnedDeviceId, OwnedTransactionId, OwnedUserId, RoomId, SecondsSinceUnixEpoch,
+    TransactionId, UserId,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -50,7 +50,7 @@ pub use vodozemac::{
     PickleError,
 };
 
-use crate::{Device, ToDeviceRequest};
+use crate::{types::events::EventEncryptionAlgorithm, Device, ToDeviceRequest};
 
 const ROTATION_PERIOD: Duration = Duration::from_millis(604800000);
 const ROTATION_MESSAGES: u64 = 100;
@@ -98,7 +98,7 @@ impl EncryptionSettings {
             content.rotation_period_msgs.map_or(ROTATION_MESSAGES, Into::into);
 
         Self {
-            algorithm: content.algorithm,
+            algorithm: EventEncryptionAlgorithm::from(content.algorithm.as_str()),
             rotation_period,
             rotation_period_msgs,
             history_visibility,
@@ -375,7 +375,9 @@ impl OutboundGroupSession {
         let session_key = self.session_key().await;
 
         AnyToDeviceEventContent::RoomKey(ToDeviceRoomKeyEventContent::new(
-            EventEncryptionAlgorithm::MegolmV1AesSha2,
+            ruma::EventEncryptionAlgorithm::from(
+                EventEncryptionAlgorithm::MegolmV1AesSha2.as_str(),
+            ),
             self.room_id().to_owned(),
             self.session_id().to_owned(),
             session_key.to_base64(),

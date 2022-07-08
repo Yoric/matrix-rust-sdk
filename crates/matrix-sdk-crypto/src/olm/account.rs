@@ -36,8 +36,8 @@ use ruma::{
         AnyToDeviceEvent, OlmV1Keys,
     },
     serde::Raw,
-    DeviceId, DeviceKeyAlgorithm, DeviceKeyId, EventEncryptionAlgorithm, OwnedDeviceId,
-    OwnedDeviceKeyId, OwnedUserId, RoomId, SecondsSinceUnixEpoch, UInt, UserId,
+    DeviceId, DeviceKeyAlgorithm, DeviceKeyId, OwnedDeviceId, OwnedDeviceKeyId, OwnedUserId,
+    RoomId, SecondsSinceUnixEpoch, UInt, UserId,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{value::RawValue as RawJsonValue, Value};
@@ -57,7 +57,7 @@ use crate::{
     identities::{MasterPubkey, ReadOnlyDevice},
     requests::UploadSigningKeysRequest,
     store::{Changes, Store},
-    types::{CrossSigningKey, DeviceKeys, OneTimeKey, SignedKey},
+    types::{events::EventEncryptionAlgorithm, CrossSigningKey, DeviceKeys, OneTimeKey, SignedKey},
     utilities::encode,
     CryptoStoreError, OlmError, SignatureError,
 };
@@ -1067,6 +1067,7 @@ impl ReadOnlyAccount {
         }
 
         let visibility = settings.history_visibility.clone();
+        let algorithm = settings.algorithm.to_owned();
 
         let outbound = OutboundGroupSession::new(
             self.device_id.clone(),
@@ -1084,6 +1085,7 @@ impl ReadOnlyAccount {
             &signing_key,
             room_id,
             &outbound.session_key().await,
+            algorithm,
             Some(visibility),
         );
 

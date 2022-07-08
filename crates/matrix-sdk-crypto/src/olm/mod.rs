@@ -52,7 +52,10 @@ pub(crate) mod tests {
     use serde_json::json;
     use vodozemac::olm::OlmMessage;
 
-    use crate::olm::{ExportedRoomKey, InboundGroupSession, ReadOnlyAccount, Session};
+    use crate::{
+        olm::{ExportedRoomKey, InboundGroupSession, ReadOnlyAccount, Session},
+        types::events::EventEncryptionAlgorithm,
+    };
 
     fn alice_id() -> &'static UserId {
         user_id!("@alice:example.org")
@@ -163,6 +166,7 @@ pub(crate) mod tests {
             "test_key",
             room_id,
             &outbound.session_key().await,
+            EventEncryptionAlgorithm::MegolmV1AesSha2,
             None,
         );
 
@@ -203,6 +207,7 @@ pub(crate) mod tests {
             "test_key",
             room_id,
             &outbound.session_key().await,
+            EventEncryptionAlgorithm::MegolmV1AesSha2,
             None,
         );
 

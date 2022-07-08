@@ -34,7 +34,7 @@ use ruma::{
         AnyRoomEvent,
     },
     serde::Raw,
-    DeviceKeyAlgorithm, EventEncryptionAlgorithm, OwnedRoomId, RoomId,
+    DeviceKeyAlgorithm, OwnedRoomId, RoomId,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -47,7 +47,10 @@ use vodozemac::{
 };
 
 use super::{BackedUpRoomKey, ExportedRoomKey, SessionKey};
-use crate::error::{EventError, MegolmResult};
+use crate::{
+    error::{EventError, MegolmResult},
+    types::events::EventEncryptionAlgorithm,
+};
 
 // TODO add creation times to the inbound group sessions so we can export
 // sessions that were created between some time period, this should only be set
@@ -72,6 +75,7 @@ pub struct InboundGroupSession {
     pub room_id: Arc<RoomId>,
     forwarding_chains: Arc<Vec<String>>,
     imported: bool,
+    encryption_algorithm: Arc<EventEncryptionAlgorithm>,
     backed_up: Arc<AtomicBool>,
 }
 
@@ -97,6 +101,7 @@ impl InboundGroupSession {
         signing_key: &str,
         room_id: &RoomId,
         session_key: &SessionKey,
+        encryption_algorithm: EventEncryptionAlgorithm,
         history_visibility: Option<HistoryVisibility>,
     ) -> Self {
         let session = InnerSession::new(session_key);
@@ -108,14 +113,15 @@ impl InboundGroupSession {
 
         InboundGroupSession {
             inner: Arc::new(Mutex::new(session)),
-            session_id: session_id.into(),
             history_visibility: history_visibility.into(),
-            sender_key: sender_key.to_owned().into(),
+            session_id: session_id.into(),
             first_known_index,
+            sender_key: sender_key.to_owned().into(),
             signing_keys: keys.into(),
             room_id: room_id.into(),
             forwarding_chains: Vec::new().into(),
             imported: false,
+            encryption_algorithm: encryption_algorithm.into(),
             backed_up: AtomicBool::new(false).into(),
         }
     }
@@ -182,6 +188,7 @@ impl InboundGroupSession {
             forwarding_chains: forwarding_chains.into(),
             imported: true,
             backed_up: AtomicBool::new(false).into(),
+            encryption_algorithm: EventEncryptionAlgorithm::from(content.algorithm.as_str()).into(),
         })
     }
 
@@ -203,6 +210,7 @@ impl InboundGroupSession {
             imported: self.imported,
             backed_up: self.backed_up(),
             history_visibility: self.history_visibility.as_ref().clone(),
+            algorithm: (*self.encryption_algorithm).to_owned(),
         }
     }
 
@@ -293,6 +301,7 @@ impl InboundGroupSession {
             room_id: (*pickle.room_id).into(),
             forwarding_chains: pickle.forwarding_chains.into(),
             backed_up: AtomicBool::from(pickle.backed_up).into(),
+            encryption_algorithm: pickle.algorithm.into(),
             imported: pickle.imported,
         })
     }
@@ -432,6 +441,13 @@ pub struct PickledInboundGroupSession {
     pub backed_up: bool,
     /// History visibility of the room when the session was created.
     pub history_visibility: Option<HistoryVisibility>,
+    /// The algorithm of this inbound group session.
+    #[serde(default = "default_algorithm")]
+    pub algorithm: EventEncryptionAlgorithm,
+}
+
+fn default_algorithm() -> EventEncryptionAlgorithm {
+    EventEncryptionAlgorithm::MegolmV1AesSha2
 }
 
 impl From<ExportedRoomKey> for InboundGroupSession {
@@ -449,6 +465,7 @@ impl From<ExportedRoomKey> for InboundGroupSession {
             room_id: (*key.room_id).into(),
             forwarding_chains: key.forwarding_curve25519_key_chain.into(),
             imported: true,
+            encryption_algorithm: key.algorithm.into(),
             backed_up: AtomicBool::from(false).into(),
         }
     }

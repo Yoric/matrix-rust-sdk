@@ -18,7 +18,7 @@ use ruma::{
     events::forwarded_room_key::{
         ToDeviceForwardedRoomKeyEventContent, ToDeviceForwardedRoomKeyEventContentInit,
     },
-    DeviceKeyAlgorithm, EventEncryptionAlgorithm, OwnedRoomId,
+    DeviceKeyAlgorithm, OwnedRoomId,
 };
 use serde::{Deserialize, Serialize};
 
@@ -33,6 +33,8 @@ pub use outbound::{
 use vodozemac::megolm::SessionKeyDecodeError;
 pub use vodozemac::megolm::{ExportedSessionKey, SessionKey};
 use zeroize::Zeroize;
+
+use crate::types::events::EventEncryptionAlgorithm;
 
 /// An exported version of an `InboundGroupSession`
 ///
@@ -108,7 +110,7 @@ impl TryInto<ToDeviceForwardedRoomKeyEventContent> for ExportedRoomKey {
             }
 
             Ok(ToDeviceForwardedRoomKeyEventContentInit {
-                algorithm: self.algorithm,
+                algorithm: ruma::EventEncryptionAlgorithm::from(self.algorithm.as_str()),
                 room_id: self.room_id,
                 sender_key: self.sender_key,
                 session_id: self.session_id,
@@ -148,7 +150,7 @@ impl TryFrom<ToDeviceForwardedRoomKeyEventContent> for ExportedRoomKey {
         forwarded_key.session_key.zeroize();
 
         Ok(Self {
-            algorithm: forwarded_key.algorithm,
+            algorithm: EventEncryptionAlgorithm::from(forwarded_key.algorithm.as_str()),
             room_id: forwarded_key.room_id,
             session_id: forwarded_key.session_id,
             forwarding_curve25519_key_chain: forwarded_key.forwarding_curve25519_key_chain,

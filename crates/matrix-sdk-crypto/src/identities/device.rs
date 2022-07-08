@@ -31,8 +31,7 @@ use ruma::{
         key::verification::VerificationMethod, room::encrypted::ToDeviceRoomEncryptedEventContent,
         AnyToDeviceEventContent,
     },
-    DeviceId, DeviceKeyAlgorithm, DeviceKeyId, EventEncryptionAlgorithm, OwnedDeviceId,
-    OwnedDeviceKeyId, UserId,
+    DeviceId, DeviceKeyAlgorithm, DeviceKeyId, OwnedDeviceId, OwnedDeviceKeyId, UserId,
 };
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tracing::warn;
@@ -46,7 +45,7 @@ use crate::{
     identities::{ReadOnlyOwnUserIdentity, ReadOnlyUserIdentities},
     olm::{InboundGroupSession, Session, SignedJsonObject, VerifyJson},
     store::{Changes, CryptoStore, DeviceChanges, Result as StoreResult},
-    types::{DeviceKey, DeviceKeys, Signatures, SignedKey},
+    types::{events::EventEncryptionAlgorithm, DeviceKey, DeviceKeys, Signatures, SignedKey},
     verification::VerificationMachine,
     OutgoingVerificationRequest, ReadOnlyAccount, Sas, ToDeviceRequest, VerificationRequest,
 };
